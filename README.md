@@ -51,10 +51,12 @@ create table product
 ```
 
 Two tenant database properties are kept inside `tenant` folder in project root location. 
+
 <img src="doc/img/tenant_property.PNG">
 
+
 These properties files have very simple structure. For example `tenant_a.properties` looks like this
-```
+```properties
 name=tesla
 datasource.url=jdbc:mysql://localhost:3306/dbtenant1
 datasource.username=root
