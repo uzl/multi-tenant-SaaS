@@ -14,7 +14,9 @@ In this model, the whole application is installed repeatedly, once for each tena
 #### Multi-tenant app with database-per-tenant
 In this model A new database is provisioned for each new tenant. 
 <img src="doc/img/saas-multi-tenant-app-database-per-tenant-13.png">
+
 When databases are deployed in the same resource group, they can be grouped into elastic database pools. This pool option is cheaper and still achieve a high degree of performance isolation.
+
 <img src="doc/img/saas-multi-tenant-app-database-per-tenant-pool-15.png">
 
 <hr>
