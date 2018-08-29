@@ -11,7 +11,7 @@ The term tenancy model refers to how tenants' stored data is organized:
 
 #### Standalone single-tenant app with single-tenant database
 In this model, the whole application is installed repeatedly, once for each tenant.
-<img src="saas-standalone-app-single-tenant-database-11.png">
+<img src="doc/img/saas-standalone-app-single-tenant-database-11.png">
  
 <hr>
 
