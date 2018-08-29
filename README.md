@@ -29,9 +29,12 @@ This access pattern allows tenant data to be distributed across multiple databas
 <hr>
 <hr>
 
-## How to use this code
+## Our Code
+**We will implement our SaaS application with database-per-tenant**
 
-Let's imagine, we want to store some car models from two company **Tesla** and **BMD** into our database. But those will not saved in same database. Depending on the company name, our product will be switched to different database for storing.
+*For this implementation, we will use spring boot's `AbstractRoutingDataSource` features for dynamic database switching.* 
+
+Let's imagine, we want to store some car models from two company **Tesla** and **BMW** into our database. We have two company, so we will use two database. Depending on the company name, our product will be stored in their corresponding isolated database.
 
 If we use URL `localhost:8080/tesla` then our SaaS application will use `dbtenant1` database.
 
@@ -39,7 +42,7 @@ If we use URL `localhost:8080/bmw` then our SaaS application will use `dbtenant2
 
 
 
-First create two sample tenant database named `dbtenant1`  and `dbtenant2`. For simplicity, we will create one `product` table in both database. 
+We need two sample tenant database named `dbtenant1`  and `dbtenant2`. For simplicity, we have created one `product` table in both database. 
 ```sql
 create table product
 (
@@ -63,12 +66,13 @@ datasource.username=root
 datasource.password=
 ```
 Here, `name=tesla` key will map `dbtenant1` database. So, if you need more tenant database, just create one more properties file.
+<hr>
+Now, We are going to store car information in our SaaS Application. So, we will create a POST request containing some JSON value.
 
-We are going to store car information in our SaaS Application. So, we will create a POST request containing some JSON value.
 <img src="doc/img/tesla.PNG">
   
-The controller is very simple. It receive a path variable which is the name of our tenant key (`tesla` or `bmw`).
-Then tenant key is saved in ``ThreadLocal`` so that it will only accessible from current request thread, and will not mix with other person's request. 
+The controller is very simple. It receives a path variable which is actually our tenant key (`tesla` or `bmw`).
+Then tenant key is then saved in ``ThreadLocal`` calling `setCurrentTenant(company)` method. We used `ThreadLocal` because it is only accessible from current request thread, and not mix with another request by other person. 
 ```java
 
 @RestController
