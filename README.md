@@ -53,26 +53,14 @@ create table product
 );
 ```
 
-Two tenant database properties are kept inside `tenant` folder in project root location. 
-
-<img src="doc/img/tenant_property.PNG">
-
-
-These properties files have very simple structure. For example `tenant_a.properties` looks like this
-```properties
-name=tesla
-datasource.url=jdbc:mysql://localhost:3306/dbtenant1
-datasource.username=root
-datasource.password=
-```
-Here, `name=tesla` key will map `dbtenant1` database. So, if you need more tenant database, just create one more properties file.
-<hr>
 Now, We are going to store car information in our SaaS Application. So, we will create a POST request containing some JSON value.
 
 <img src="doc/img/tesla.PNG">
   
+
+
 The controller is very simple. It receives a path variable which is actually our tenant key (`tesla` or `bmw`).
-Then tenant key is then saved in ``ThreadLocal`` calling `setCurrentTenant(company)` method. We used `ThreadLocal` because it is only accessible from current request thread, and not mix with another request by other person. 
+Then tenant key is then saved in ``ThreadLocal`` calling `setCurrentTenant(company)` method. 
 ```java
 
 @RestController
@@ -99,11 +87,74 @@ public class CompanyController {
 
 ```
 
-
+So when the request just receive in controller, we immediately set the tenant name before any database operation. 
+Setting the tenant name is straightforward. In ``TenantContext`` class, a setter method is used for storing in `ThreadLocal`, and a getter method will be used during database operation. We used `ThreadLocal` because it is only accessible from current request thread, and will not mix with another request by other person. 
+     
 ```java
 
+public class TenantContext {
+    private static ThreadLocal<Object> currentTenant = new ThreadLocal<>();
+
+    public static void setCurrentTenant(Object tenant) {
+        currentTenant.set(tenant);
+    }
+
+    public static Object getCurrentTenant() {
+        return currentTenant.get();
+    }
+}
+```
+
+
+Now let's move on database switching part. Here we used `AbstractRoutingDataSource` feature of spring framework.
+ 
+
+By defination, [AbstractRoutingDataSource](https://docs.spring.io/spring/docs/3.2.5.RELEASE/javadoc-api/org/springframework/jdbc/datasource/lookup/AbstractRoutingDataSource.html) implementation routes getConnection() calls to one of various target DataSources based on a lookup key. The latter is usually (but not necessarily) determined through some thread-bound transaction context.
+
+In our code, we extends `AbstractRoutingDataSource` to override the `determineCurrentLookupKey()` method and get the datasource name from current thread to meet our need. 
+```java
+
+public class MultitenantDataSource extends AbstractRoutingDataSource {
+    @Override
+    protected Object determineCurrentLookupKey() {
+        return TenantContext.getCurrentTenant();
+    }
+}
 
 ```
 
+But, before lookup from DataSource, we need mapping between lookup key(ex. tesla or bmw) and datasource propertices(ex. database name, username, password).
+
+
+in our code `resolvedDataSources` is a map of datasource. As much tenant database we need, we have to put those here. 
+We also need a default datasource which should not use as tenant database purpose.
+
+```java
+
+MultitenantDataSource dataSource = new MultitenantDataSource();
+dataSource.setDefaultTargetDataSource(defaultDataSource());
+dataSource.setTargetDataSources(resolvedDataSources);
+```
+
+But where do we write database credetial for datasource? 
+
+Here, we have a folder named `tenant`. As we need two tenant database, two properties are kept inside `tenant` folder in project root location, and each one contains database credentials. One for `tesla`, other one for `bmw`. 
+
+<img src="doc/img/tenant_property.PNG">
+
+
+These properties files have very simple structure. For example `tenant_a.properties` looks like this
+```properties
+name=tesla
+datasource.url=jdbc:mysql://localhost:3306/dbtenant1
+datasource.username=root
+datasource.password=
+```
+Here, `name=tesla` key will map `dbtenant1` database. So, if you need more tenant database, just create one more properties file.
+<hr>
+
+### Limitations
+If you want to add one more car company (I mean, tenant database) you have to create one properties file and also restart the application. 
+
 ### Reference 
-[Multi-tenant SaaS database tenancy patterns - microsoft](https://docs.microsoft.com/en-us/azure/sql-database/saas-tenancy-app-design-patterns)
+[Multi-tenant SaaS database tenancy patterns - by Microsoft](https://docs.microsoft.com/en-us/azure/sql-database/saas-tenancy-app-design-patterns)
