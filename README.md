@@ -158,3 +158,7 @@ If you want to add one more car company (I mean, tenant database) you have to cr
 
 ### Reference 
 [Multi-tenant SaaS database tenancy patterns - by Microsoft](https://docs.microsoft.com/en-us/azure/sql-database/saas-tenancy-app-design-patterns)
+
+[A Guide to Spring AbstractRoutingDatasource](https://www.baeldung.com/spring-abstract-routing-data-source)
+[https://github.com/wmeints/spring-multi-tenant-demo](https://github.com/wmeints/spring-multi-tenant-demo)
+[AbstractRoutingDataSource Example](https://howtodoinjava.com/spring-orm/spring-3-2-5-abstractroutingdatasource-example/)
